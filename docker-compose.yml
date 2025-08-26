@@ -16,8 +16,9 @@ services:
     cap_add:
       - net_admin
     restart: unless-stopped
+    # Bind n8n to localhost only; NGINX will proxy 80/443 -> 127.0.0.1:5678
     ports:
-      - "${PUBLIC_PORT:-5678}:5678"
+      - "127.0.0.1:${PUBLIC_PORT:-5678}:5678"
 
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
@@ -32,13 +33,13 @@ services:
       # Core n8n config
       - NODE_ENV=production
       - N8N_PORT=${N8N_PORT:-5678}
-      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-      - N8N_HOST=${N8N_HOST}
-      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-}
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-https}                 # behind NGINX TLS
+      - N8N_HOST=${N8N_HOST}                                # e.g. n8n.backslashdesigns.ca
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-}                    # e.g. https://n8n.backslashdesigns.ca/
       - GENERIC_TIMEZONE=${N8N_TZ:-America/Toronto}
 
       # Security / privacy
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-}     # strongly recommended: set a 32+ char random string
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-}          # strongly recommended: set a 32+ char random string
       - N8N_SECURE_COOKIE=${N8N_SECURE_COOKIE:-false}
       - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE:-false}
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-}
